@@ -1,0 +1,18 @@
+p.id = integer - use 1 (this is the process identifier, should be unique)
+p.cpu_state = integer - use 0  (this is the initial state of the CPU, holds registers and PC)
+p.memory = integer - use 2000 (this is the memory needed by the process)
+p.scheduling_information = integer - use 1 (this is the priority of the process)
+p.accounting_information = integer - use 0 (this holds how long the process needs to run)
+p.process_state = string - use "new" (this holds the state that the process is in, all should start in "new")
+p.parent = pointer or P.id - use NULL (this is a pointer to the parent process, we can use P.id)
+p.children = pointer or P.id - use NULL (this is a pointer to the child process, we can use P.id of child, assume just one child)
+p.open_files = pointer - use NULL (this is the file handler pointer, we can assume just one file can be opened initially)
+p.other_resources = String - use "NONE" (this is used to hold a description of any other system resources needed)
+
+Data sample is below, description is above - you file just needs to look like the data below 
+----------------------------------------------- 
+
+1 0 2000 1 0 "new" NULL NULL NULL "NONE" 
+2 0 4000 1 0 "new" NULL NULL NULL "NONE" 
+6 0 12000 2 0 "new" NULL NULL NULL "NONE" 
+4 0 500 3 0 "new" NULL NULL NULL "NONE" 
