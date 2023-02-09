@@ -4,6 +4,6 @@ public class Main
 {
     public static void main(String[] args)
     {
-        PCB pcb = new PCB(800, 300, "Read CPU Data");
+        StateEditor stateEditor = new StateEditor(800, 400, "Read CPU Data");
     }
 }
