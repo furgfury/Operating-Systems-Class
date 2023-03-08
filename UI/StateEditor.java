@@ -10,9 +10,12 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import javax.swing.*;
 
+import DataHandling.DataPack;
+import DataHandling.ProcessScheduler;
 import FileHandling.TextFileReader;
 
 public class StateEditor
@@ -28,10 +31,12 @@ public class StateEditor
     final String WARNING = "WARNING!";
     final String FILE_WARNING = "Create or open a new file to add process.";
     final String SAVE_WARNING = "Exit without saving?";
-    final String[] COMPONENT_LABELS = {"ID","State","Memory","Scheduling","Accounting","Process","Parent","Children","Files","Resources"};
+    final String[] COMPONENT_LABELS = {"ID","State","Memory","Scheduling","Accounting","Process","Parent","Children","Files","Resources","CPU Required","Arrival Time"};
     final String TXT_EXTENSION = ".txt";
+    final String[] SCHEDULING_ALGORITHMS = {"Select Scheduling","First Come First Serve", "Shortest Job First"};
+
     //integers
-    final int NUM_CPU_PARAMETERS = 10;
+    final int NUM_CPU_PARAMETERS = COMPONENT_LABELS.length;
     final int TEXTFIELD_COLUMNS = 10;
     final int TEXTFIELD_PANEL_ROWS = 5;
     final int TEXTFIELD_PANEL_COLS = 2;
@@ -54,9 +59,12 @@ public class StateEditor
     JButton open, save, add, delete;
     JTextArea textArea;
     JTextField fileName;
+    JComboBox<String> schedulingAlg;
 
     JTextField[] components = new JTextField[NUM_CPU_PARAMETERS];
     JLabel[] componentLabels = new JLabel[NUM_CPU_PARAMETERS];
+
+    ArrayList<DataPack> dataList = new ArrayList<DataPack>();
 
     String fullText = "";
     boolean saved = false;
@@ -199,6 +207,11 @@ public class StateEditor
             {
                 if(validateStateInformation() && file != null)
                 {
+                    String[] tempData = getStateInformation().split(" ");
+                    DataPack temp = new DataPack(tempData);
+
+                    dataList.add(temp);
+
                     fullText = getStateInformation() + fullText;
 
                     textArea.setText(fullText);
@@ -239,10 +252,34 @@ public class StateEditor
             }
         });
 
+        schedulingAlg = new JComboBox<String>(SCHEDULING_ALGORITHMS);
+
+        schedulingAlg.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                int scheduleAlg = 0;
+
+                switch(schedulingAlg.getSelectedItem().toString())
+                {
+                    case "First Come First Serve":
+                        scheduleAlg = 1;
+                    case "Shortest Job First":
+                        scheduleAlg = 2;
+                }
+
+                reschedule(scheduleAlg);
+                
+                // try { reread(); }
+                // catch (IOException e1) { e1.printStackTrace(); }
+            }
+        });
+
         //add buttons to button subpanel
         buttonPanel.add(add);
         buttonPanel.add(delete);
-        buttonPanel.add(EMPTY);
+        buttonPanel.add(schedulingAlg);
         buttonPanel.add(open);
         buttonPanel.add(save);
         buttonPanel.add(fileName);
@@ -257,7 +294,7 @@ public class StateEditor
 
         //format the window and subpanels to look organized
         frame.setLayout(new FlowLayout());
-        textFieldPanel.setLayout(new GridLayout(TEXTFIELD_PANEL_ROWS,TEXTFIELD_PANEL_COLS));
+        textFieldPanel.setLayout(new GridLayout(NUM_CPU_PARAMETERS/TEXTFIELD_PANEL_COLS,TEXTFIELD_PANEL_COLS));
         buttonPanel.setLayout(new GridLayout(buttonPanel.getComponentCount(), BUTTON_PANEL_ROWS));
         bottomPanel.setLayout(new FlowLayout());
 
@@ -313,9 +350,38 @@ public class StateEditor
         String line;
         while((line = reader.readLine()) != null)
         {
-            fullText += line + "\n";
+            DataPack temp = new DataPack(line.split(" "));
+            dataList.add(temp);
+
+            fullText += temp.getDataString() + "\n";
         }
 
         reader.close();
+    }
+
+    private void reschedule(int scheduleAlg)
+    {
+        fullText = "";
+        
+        switch(scheduleAlg)
+        {
+            case 1:
+                ProcessScheduler.firstComeFirstServeScheduler(dataList);
+            case 2:
+                ProcessScheduler.shortestJobFirstScheduler(dataList);
+        }
+
+        for(int i = 0; i < dataList.size(); i++)
+        {
+            fullText += dataList.get(i).getDataString();
+            fullText += "\n";
+        }
+
+        textArea.setText(fullText);
+    }
+
+    private void randomPCB(int numRandomPCB)
+    {
+        
     }
 }
